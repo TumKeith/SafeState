@@ -168,6 +168,14 @@ class SafeStateApp:
                 print("[!] Invalid operation parameter selection code. Try again.")
 
 if __name__ == "__main__":
-    # Instantiate app layout
-    app = SafeStateApp()
-    app.main_menu()
+    try:
+        # Instantiate app layout
+        app = SafeStateApp()
+        app.main_menu()
+    except KeyboardInterrupt:
+        print("\n\n[!] Interrupt signal captured. Forcing clean exit of SafeState subsystems...")
+        try:
+            sys.exit(0)
+        except NameError:
+            import sys
+            sys.exit(0)
