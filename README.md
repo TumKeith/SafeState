@@ -21,3 +21,15 @@ SafeState is a lightweight, autonomous local backup and disaster recovery utilit
 Launch the utility from an elevated command prompt or terminal environment:
 ```bash
 python safestate.py
+### incase of a disk crash and salvage scenario
+## Deployment via Hiren's BootCD PE
+
+SafeState can be executed directly inside a live Windows PE environment like Hiren's BootCD without any installation or environment configurations.
+
+### Instructions:
+1. Copy `safestate.exe` directly onto your bootable Ventoy USB drive (store it in any standard data folder).
+2. Boot the target computer into **Hiren's BootCD PE**.
+3. Once the live Windows desktop environment loads, open File Explorer and navigate to your USB drive letter.
+4. Double-click `safestate.exe` to launch the utility and begin the profile extraction process.
+
+*Note: Since the executable is entirely self-contained, it will natively interact with the host computer's locked partitions through the WinPE kernel.*
