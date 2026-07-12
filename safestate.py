@@ -9,14 +9,40 @@ from pathlib import Path
 from datetime import datetime
 
 class SafeStateApp:
-    def __init__(self, system_root="C:\\"):
-        self.system_root = Path(system_root)
+    def __init__(self):
+        # Dynamically evaluate the target operating system root path for recovery safety
+        self.system_root = self._determine_system_root()
         self.users_directory = self.system_root / "Users"
         self.ignored_profiles = ["Public", "Default", "defaultuser0", "All Users", "desktop.ini"]
         self.target_subfolders = ["Desktop", "Documents", "Downloads", "Pictures"]
 
+    def _determine_system_root(self):
+        """Discovers the true location of the Windows user profile installation across WinPE drive shifts."""
+        print("\n=== SYSTEM DRIVE DISCOVERY ===")
+        # Gather all connected drive paths, filtering out the volatile Hiren's boot RAM drive (X:\)
+        available_drives = [
+            f"{d}:\\" for d in "ABCDEFGHIJKLMOPQRSTUVWYZ" 
+            if os.path.exists(f"{d}:\\") and d.upper() != "X"
+        ]
+        print(f"Detected mounted partition links: {', '.join(available_drives)}")
+        
+        # Predictive scanning fallback logic
+        default_drive = "C:\\"
+        if not os.path.exists("C:\\Users") and os.path.exists("D:\\Users"):
+            default_drive = "D:\\"
+
+        drive_input = input(f"Enter target OS root partition drive letter (Default: {default_drive}): ").strip()
+        if not drive_input:
+            drive_input = default_drive
+            
+        # Guarantee formatting parameters comply with Path syntax requirements
+        if not drive_input.endswith("\\"):
+            drive_input += "\\"
+            
+        return Path(drive_input)
+
     def discover_profiles(self):
-        """Scans C:\\Users directly and returns a clean list of real user folders."""
+        """Scans the designated Users directory directly and returns a clean list of real user folders."""
         if not self.users_directory.exists():
             print(f"\n[CRITICAL] Directory not found: {self.users_directory}")
             return []
@@ -118,15 +144,15 @@ class SafeStateApp:
             print("[ERROR] Invalid selection reference point. Aborting.")
             return
 
-        # Map to active shell profiles dynamically so we do not cause duplicate clashes
+        # Map targets dynamically, prioritizing user-specified system roots over active host user paths
         live_profile_paths = {
-            "Desktop": Path(os.path.expanduser("~/Desktop")),
-            "Documents": Path(os.path.expanduser("~/Documents")),
-            "Downloads": Path(os.path.expanduser("~/Downloads")),
-            "Pictures": Path(os.path.expanduser("~/Pictures"))
+            "Desktop": self.system_root / "Users" / chosen_user_archive / "Desktop",
+            "Documents": self.system_root / "Users" / chosen_user_archive / "Documents",
+            "Downloads": self.system_root / "Users" / chosen_user_archive / "Downloads",
+            "Pictures": self.system_root / "Users" / chosen_user_archive / "Pictures"
         }
 
-        print(f"\n[*] Injecting archived data structures into active live environment...")
+        print(f"\n[*] Injecting archived data structures into target system environments...")
         user_archive_path = archive_root / chosen_user_archive
 
         for folder_name, live_target_path in live_profile_paths.items():
@@ -139,9 +165,9 @@ class SafeStateApp:
                     # Merge cleanly without wiping tracking metadata parameters
                     shutil.copytree(archived_folder, live_target_path, dirs_exist_ok=True)
                 except Exception as e:
-                    print(f"    [WARNING] Error copying properties inside {folder_name}: {e}")
+                    print(f"      [WARNING] Error copying properties inside {folder_name}: {e}")
 
-        # Trigger Windows shell repaint signal line instantly
+        # Trigger Windows shell repaint signal line instantly for local validation context
         try:
             import ctypes
             ctypes.windll.shell32.SHChangeNotify(0x08000000, 0x0000, None, None)
@@ -178,8 +204,4 @@ if __name__ == "__main__":
         app.main_menu()
     except KeyboardInterrupt:
         print("\n\n[!] Interrupt signal captured. Forcing clean exit of SafeState subsystems...")
-        try:
-            sys.exit(0)
-        except NameError:
-            import sys
-            sys.exit(0)
+        sys.exit(0)
