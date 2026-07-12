@@ -33,3 +33,6 @@ SafeState can be executed directly inside a live Windows PE environment like Hir
 4. Double-click `safestate.exe` to launch the utility and begin the profile extraction process.
 
 *Note: Since the executable is entirely self-contained, it will natively interact with the host computer's locked partitions through the WinPE kernel.*
+---
+## Developer
+* **Keith** - Creator and Lead Developer

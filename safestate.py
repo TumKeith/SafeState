@@ -1,3 +1,7 @@
+# --------------------------------------------------------
+# SafeState - Personal Profile Disaster Recovery Utility
+# Developer: Keith
+# --------------------------------------------------------
 import os
 import shutil
 import sys
